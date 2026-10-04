@@ -1,0 +1,21 @@
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: online-exam-mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: online_exam
+      MYSQL_USER: examuser
+      MYSQL_PASSWORD: exampassword
+
+    ports:
+    - "3307:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
