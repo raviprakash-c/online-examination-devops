@@ -12,7 +12,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -27,5 +26,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
 
+      - name: Compile backend
+        run: python -m compileall -q backend
+
       - name: Run backend tests
         run: python -m pytest -q
+
+      - name: Check frontend JavaScript
+        run: node --check frontend/app.js
+
+      - name: Validate Docker Compose
+        run: docker compose -f docker/docker-compose.yml config
+
+      - name: Build backend image
+        run: docker build -f docker/Dockerfile.backend -t online-exam-backend:ci .
+
+      - name: Build frontend image
+        run: docker build -f docker/Dockerfile.frontend -t online-exam-frontend:ci .
