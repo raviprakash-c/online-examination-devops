@@ -408,16 +408,59 @@ async function loadAdminQuestions() {
         "<br>C: " + escapeHtml(q.option_c) + "<br>D: " + escapeHtml(q.option_d) + "</td>" +
         "<td>" + escapeHtml(String(q.correct_option).toUpperCase()) + "</td>" +
         "<td>" + q.marks + "</td>" +
-        '<td><button class="small danger delete-question-btn" data-id="' + q.id + '">Delete</button></td></tr>';
+        '<td><div class="actions"><button class="small edit-question-btn" data-id="' + q.id + '">Edit</button><button class="small danger delete-question-btn" data-id="' + q.id + '">Delete</button></div></td></tr>';
     });
     html += "</tbody></table>";
     $("admin-questions").innerHTML = html;
 
+    $("admin-questions").querySelectorAll(".edit-question-btn").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const question = questions.find(function (item) { return item.id === Number(button.dataset.id); });
+        if (question) editQuestion(question);
+      });
+    });
     $("admin-questions").querySelectorAll(".delete-question-btn").forEach(function (button) {
       button.addEventListener("click", function () {
         deleteQuestion(Number(button.dataset.id));
       });
     });
+  } catch (error) {
+    showMessage(error.message, "error");
+  }
+}
+
+async function editQuestion(question) {
+  if (!selectedAdminExamId) return;
+  const questionText = window.prompt("Question:", question.question_text);
+  if (questionText === null) return;
+  const optionA = window.prompt("Option A:", question.option_a);
+  if (optionA === null) return;
+  const optionB = window.prompt("Option B:", question.option_b);
+  if (optionB === null) return;
+  const optionC = window.prompt("Option C:", question.option_c);
+  if (optionC === null) return;
+  const optionD = window.prompt("Option D:", question.option_d);
+  if (optionD === null) return;
+  const correct = window.prompt("Correct option (a/b/c/d):", question.correct_option);
+  if (correct === null) return;
+  const marks = window.prompt("Marks:", question.marks);
+  if (marks === null) return;
+
+  try {
+    await api("/exams/" + selectedAdminExamId + "/questions/" + question.id, {
+      method: "PUT",
+      body: JSON.stringify({
+        question_text: questionText,
+        option_a: optionA,
+        option_b: optionB,
+        option_c: optionC,
+        option_d: optionD,
+        correct_option: correct.toLowerCase(),
+        marks: Number(marks)
+      })
+    });
+    showMessage("Question updated.");
+    await loadAdminQuestions();
   } catch (error) {
     showMessage(error.message, "error");
   }
