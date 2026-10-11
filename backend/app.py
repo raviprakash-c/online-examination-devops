@@ -1,3 +1,4 @@
+import logging
 import os
 from functools import wraps
 
@@ -11,6 +12,9 @@ except ImportError:
     from db import get_connection
 
 
+logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper())
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
 
 app.config.update(
@@ -20,7 +24,9 @@ app.config.update(
     SESSION_COOKIE_SECURE=os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true",
 )
 
-CORS(app, supports_credentials=True)
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
+CORS(app, origins=CORS_ORIGINS.split(","), supports_credentials=True)
+app.config["MAX_CONTENT_LENGTH"] = int(os.getenv("MAX_CONTENT_LENGTH", "1048576"))
 
 
 def json_body():
@@ -187,12 +193,15 @@ def health():
         result = fetch_one("SELECT 1 AS result")
         return jsonify({
             "status": "healthy",
+            "service": "online-examination-api",
             "database": "connected",
             "result": result,
         })
-    except Exception:
+    except Exception as exc:
+        logger.exception("Health check failed: %s", exc)
         return jsonify({
             "status": "unhealthy",
+            "service": "online-examination-api",
             "database": "disconnected",
         }), 503
 
@@ -793,6 +802,51 @@ def submit_attempt(attempt_id):
         connection.close()
 
 
+
+@app.get("/api/admin/analytics")
+@admin_required
+def admin_analytics():
+    summary = fetch_one(
+        """
+        SELECT
+            (SELECT COUNT(*) FROM users WHERE role = 'student') AS students,
+            (SELECT COUNT(*) FROM exams) AS exams,
+            (SELECT COUNT(*) FROM questions) AS questions,
+            (SELECT COUNT(*) FROM attempts) AS attempts,
+            (SELECT COUNT(*) FROM attempts WHERE submitted_at IS NOT NULL) AS submissions,
+            (SELECT COALESCE(AVG(score), 0) FROM attempts WHERE submitted_at IS NOT NULL) AS average_score
+        """
+    )
+
+    outcomes = fetch_all(
+        """
+        SELECT
+            CASE
+                WHEN total_marks = 0 THEN 'FAIL'
+                WHEN (score / total_marks) * 100 >= 40 THEN 'PASS'
+                ELSE 'FAIL'
+            END AS status,
+            COUNT(*) AS count
+        FROM (
+            SELECT
+                a.id,
+                a.score,
+                COALESCE(SUM(q.marks), 0) AS total_marks
+            FROM attempts a
+            LEFT JOIN questions q ON q.exam_id = a.exam_id
+            WHERE a.submitted_at IS NOT NULL
+            GROUP BY a.id, a.score
+        ) AS result_summary
+        GROUP BY status
+        ORDER BY status
+        """
+    )
+
+    return jsonify({
+        "summary": summary,
+        "outcomes": outcomes,
+    })
+
 # -------------------- Results --------------------
 
 @app.get("/api/results")
@@ -879,6 +933,14 @@ def method_not_allowed(_error):
 @app.errorhandler(500)
 def server_error(_error):
     return jsonify({"error": "Internal server error"}), 500
+
+
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 if __name__ == "__main__":
