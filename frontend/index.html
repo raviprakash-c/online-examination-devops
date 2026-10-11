@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Online Examination System">
+  <title>Online Examination System</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Online Examination System</h1>
+      <p class="subtitle">Student assessment and administration portal</p>
+    </div>
+    <div id="session-area" class="session-area"></div>
+  </header>
+
+  <main class="container">
+    <section id="auth-view" class="view">
+      <div class="auth-grid">
+        <div class="card">
+          <h2>Login</h2>
+          <form id="login-form">
+            <label>Email<input id="login-email" type="email" required></label>
+            <label>Password<input id="login-password" type="password" minlength="8" required></label>
+            <button type="submit">Login</button>
+          </form>
+        </div>
+        <div class="card">
+          <h2>Student Registration</h2>
+          <form id="register-form">
+            <label>Username<input id="register-username" required minlength="3"></label>
+            <label>Email<input id="register-email" type="email" required></label>
+            <label>Password<input id="register-password" type="password" minlength="8" required></label>
+            <button type="submit">Create Student Account</button>
+          </form>
+        </div>
+      </div>
+      <div id="auth-message" class="message hidden"></div>
+    </section>
+
+    <section id="student-view" class="view hidden">
+      <div class="toolbar">
+        <div><h2>Student Dashboard</h2><p>Choose an exam, complete it before the timer expires, and review your results.</p></div>
+        <button id="student-refresh">Refresh</button>
+      </div>
+      <div class="card">
+        <h3>Available Exams</h3>
+        <div id="student-exams" class="table-wrap"></div>
+      </div>
+      <div id="exam-view" class="card hidden">
+        <div class="exam-head">
+          <div><h3 id="exam-title"></h3><p id="exam-description"></p></div>
+          <div id="exam-timer" class="timer">00:00</div>
+        </div>
+        <form id="exam-form">
+          <div id="exam-questions"></div>
+          <button id="submit-exam" class="danger" type="submit">Submit Exam</button>
+        </form>
+      </div>
+      <div class="card">
+        <h3>My Results</h3>
+        <div id="student-results" class="table-wrap"></div>
+      </div>
+    </section>
+
+    <section id="admin-view" class="view hidden">
+      <div class="toolbar">
+        <div><h2>Admin Dashboard</h2><p>Create exams, manage MCQs, and review student performance.</p></div>
+        <button id="admin-refresh">Refresh</button>
+      </div>
+      <div class="stats-grid" id="admin-stats"></div>
+
+      <div class="card">
+        <h3>Create Exam</h3>
+        <form id="exam-create-form" class="form-grid">
+          <label>Title<input id="exam-title-input" required></label>
+          <label>Duration (minutes)<input id="exam-duration-input" type="number" min="1" max="600" value="30" required></label>
+          <label class="wide">Description<textarea id="exam-description-input"></textarea></label>
+          <button type="submit">Create Exam</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Manage Exams</h3>
+        <div id="admin-exams" class="table-wrap"></div>
+      </div>
+
+      <div id="question-manager" class="card hidden">
+        <div class="toolbar">
+          <div><h3>Questions for <span id="question-exam-title"></span></h3><p>Add or delete MCQ questions.</p></div>
+          <button id="close-question-manager" type="button">Close</button>
+        </div>
+        <form id="question-create-form" class="form-grid">
+          <label class="wide">Question<textarea id="question-text-input" required></textarea></label>
+          <label>Option A<input id="option-a-input" required></label>
+          <label>Option B<input id="option-b-input" required></label>
+          <label>Option C<input id="option-c-input" required></label>
+          <label>Option D<input id="option-d-input" required></label>
+          <label>Correct option<select id="correct-option-input" required><option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option></select></label>
+          <label>Marks<input id="question-marks-input" type="number" min="1" max="100" value="1" required></label>
+          <button type="submit">Add Question</button>
+        </form>
+        <div id="admin-questions" class="table-wrap"></div>
+      </div>
+
+      <div class="card">
+        <h3>Student Results</h3>
+        <div id="admin-results" class="table-wrap"></div>
+      </div>
+    </section>
+
+    <div id="global-message" class="message hidden"></div>
+  </main>
+  <script src="app.js" defer></script>
+</body>
+</html>
