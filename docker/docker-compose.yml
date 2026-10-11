@@ -4,10 +4,10 @@ services:
     container_name: online-exam-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
       MYSQL_DATABASE: online_exam
-      MYSQL_USER: examuser
-      MYSQL_PASSWORD: exampassword
+      MYSQL_USER: ${MYSQL_USER:-examuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-exampassword}
     ports:
       - "3307:3306"
     volumes:
@@ -30,12 +30,12 @@ services:
       DB_HOST: mysql
       DB_PORT: "3306"
       DB_NAME: online_exam
-      DB_USER: examuser
-      DB_PASSWORD: exampassword
-      SECRET_KEY: change-me-in-production
+      DB_USER: ${MYSQL_USER:-examuser}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-exampassword}
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
       SESSION_COOKIE_SAMESITE: Lax
       SESSION_COOKIE_SECURE: "false"
-      CORS_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080}
       LOG_LEVEL: INFO
       FLASK_DEBUG: "false"
       PORT: "5000"
